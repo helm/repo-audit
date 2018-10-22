@@ -45,10 +45,10 @@ func main() {
 			EnvVar: "HELM_REPO_AUDIT_CONFIG",
 		},
 		cli.StringFlag{
-			Name:   "cache",
-			Usage:  "Location of cache",
+			Name:   "store",
+			Usage:  "Location of persistent store",
 			Value:  cacheLoc,
-			EnvVar: "HELM_REPO_AUDIT_CACHE",
+			EnvVar: "HELM_REPO_AUDIT_STORE",
 		},
 
 		// TODO(mattfarina): Add verbose option
@@ -80,7 +80,7 @@ func main() {
 			Aliases: []string{"a"},
 			Usage:   "Audit one or more Helm repositories",
 			Action: func(c *cli.Context) error {
-				return audit.Audit(cfg, c.GlobalString("cache"))
+				return audit.Audit(cfg, c.GlobalString("store"))
 			},
 		},
 	}

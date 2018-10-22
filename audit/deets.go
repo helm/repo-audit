@@ -24,3 +24,11 @@ func (d *Deets) Get(name, version string) (Deet, error) {
 	// TODO(mattfarina): Update index for next run
 	return Deet{}, errors.New("Cannot find details for chart")
 }
+
+func (d *Deets) Add(name string, deet Deet) {
+	if len(d.Charts[name]) == 0 {
+		d.Charts[name] = []Deet{}
+	}
+
+	d.Charts[name] = append(d.Charts[name], deet)
+}

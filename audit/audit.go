@@ -20,6 +20,7 @@ func Audit(cfgs Configs, store string) error {
 
 	// Where we will store elements we download durning the process that can
 	// be deleted after the fact.
+	// TODO(mattfarina): make this configurable
 	baseDir, err := ioutil.TempDir(os.TempDir(), "helm-repo-audit")
 	if err != nil {
 		return err
@@ -70,9 +71,16 @@ func Audit(cfgs Configs, store string) error {
 		}
 
 		// Do some auditing
-		err = compareDigest(ds, rf)
+		changed, err := compareDigest(&ds, rf)
 		if err != nil {
 			return err
+		}
+
+		if changed {
+			err = saveDeets(spath, ds)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -122,6 +130,10 @@ func repoToDeets(rf *repo.IndexFile, pth, name, loc string) error {
 		}
 	}
 
+	return saveDeets(pth, deets)
+}
+
+func saveDeets(pth string, deets Deets) error {
 	jd, err := json.Marshal(deets)
 	if err != nil {
 		return err
@@ -129,13 +141,27 @@ func repoToDeets(rf *repo.IndexFile, pth, name, loc string) error {
 	return ioutil.WriteFile(pth, jd, 0655)
 }
 
-func compareDigest(deets Deets, index *repo.IndexFile) error {
+func compareDigest(deets *Deets, index *repo.IndexFile) (bool, error) {
+	changed := false
 	fmt.Printf("Auditing %s at %q\n", deets.Name, deets.Location)
 	for n, chart := range index.Entries {
 		for _, cv := range chart {
 			d, err := deets.Get(n, cv.Version)
 			if err != nil {
-				fmt.Printf("Error handling chart %q: %s\n", n, err)
+
+				// Cannot find details for a chart at that version so we need
+				// to store those details.
+				if err.Error() == "Cannot find details for chart" {
+					d := Deet{
+						Name:    n,
+						Version: cv.Version,
+						Digest:  cv.Digest,
+					}
+					deets.Add(n, d)
+					changed = true
+				} else {
+					fmt.Printf("Error handling chart %q: %s\n", n, err)
+				}
 			} else {
 				if cv.Digest != d.Digest {
 					fmt.Printf("PROBLEM: The digest for %q at version %q has changed from %q to %q\n", d.Name, d.Version, d.Digest, cv.Digest)
@@ -144,5 +170,5 @@ func compareDigest(deets Deets, index *repo.IndexFile) error {
 		}
 	}
 
-	return nil
+	return changed, nil
 }
