@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/kennygrant/sanitize"
+	"github.com/mattfarina/helm-repo-audit/report"
+	"github.com/mattfarina/helm-repo-audit/report/stderr"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -32,6 +34,10 @@ func Audit(cfgs Configs, store string) error {
 
 	// Iterate over each of the repos and audit it
 	for _, cfg := range cfgs {
+
+		// Handle the reporter
+		// TODO(mattfarina): Make this configurable and handle multiple
+		reporter := stderr.New()
 
 		// Making name safe to write to the file system
 		sname := sanitize.BaseName(cfg.Name)
@@ -55,8 +61,8 @@ func Audit(cfgs Configs, store string) error {
 			// First time
 
 			// TODO(mattfarina): Make the io writing alterable
-			fmt.Printf("First time fetching %s and %q\n", cfg.Name, cfg.Location)
-			fmt.Println("On first run information is downloaded and cached. Future runs will look for changes")
+			reporter.Add(fmt.Sprintf("First time fetching %s and %q\n", cfg.Name, cfg.Location))
+			reporter.Add(fmt.Sprintln("On first run information is downloaded and cached. Future runs will look for changes"))
 
 			err = repoToDeets(rf, spath, cfg.Name, cfg.Location)
 			continue
@@ -71,7 +77,7 @@ func Audit(cfgs Configs, store string) error {
 		}
 
 		// Do some auditing
-		changed, err := compareDigest(&ds, rf)
+		changed, err := compareDigest(&ds, rf, reporter)
 		if err != nil {
 			return err
 		}
@@ -82,6 +88,8 @@ func Audit(cfgs Configs, store string) error {
 				return err
 			}
 		}
+
+		reporter.Send()
 	}
 
 	return nil
@@ -141,7 +149,7 @@ func saveDeets(pth string, deets Deets) error {
 	return ioutil.WriteFile(pth, jd, 0655)
 }
 
-func compareDigest(deets *Deets, index *repo.IndexFile) (bool, error) {
+func compareDigest(deets *Deets, index *repo.IndexFile, reporter report.Report) (bool, error) {
 	changed := false
 	fmt.Printf("Auditing %s at %q\n", deets.Name, deets.Location)
 	for n, chart := range index.Entries {
@@ -160,11 +168,11 @@ func compareDigest(deets *Deets, index *repo.IndexFile) (bool, error) {
 					deets.Add(n, d)
 					changed = true
 				} else {
-					fmt.Printf("Error handling chart %q: %s\n", n, err)
+					reporter.Add(fmt.Sprintf("Error handling chart %q: %s\n", n, err))
 				}
 			} else {
 				if cv.Digest != d.Digest {
-					fmt.Printf("PROBLEM: The digest for %q at version %q has changed from %q to %q\n", d.Name, d.Version, d.Digest, cv.Digest)
+					reporter.Add(fmt.Sprintf("PROBLEM: The digest for %q at version %q has changed from %q to %q\n", d.Name, d.Version, d.Digest, cv.Digest))
 				}
 			}
 		}
