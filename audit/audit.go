@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/helm/repo-audit/report"
+	"github.com/helm/repo-audit/report/group"
 	"github.com/kennygrant/sanitize"
-	"github.com/mattfarina/helm-repo-audit/report"
-	"github.com/mattfarina/helm-repo-audit/report/stderr"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -35,9 +35,8 @@ func Audit(cfgs Configs, store string) error {
 	// Iterate over each of the repos and audit it
 	for _, cfg := range cfgs {
 
-		// Handle the reporter
-		// TODO(mattfarina): Make this configurable and handle multiple
-		reporter := stderr.New()
+		// Get reporters to send the report
+		reporter := group.New(cfg.Reporters)
 
 		// Making name safe to write to the file system
 		sname := sanitize.BaseName(cfg.Name)
@@ -149,7 +148,7 @@ func saveDeets(pth string, deets Deets) error {
 	return ioutil.WriteFile(pth, jd, 0655)
 }
 
-func compareDigest(deets *Deets, index *repo.IndexFile, reporter report.Report) (bool, error) {
+func compareDigest(deets *Deets, index *repo.IndexFile, reporter report.Reporter) (bool, error) {
 	changed := false
 	fmt.Printf("Auditing %s at %q\n", deets.Name, deets.Location)
 	for n, chart := range index.Entries {

@@ -3,6 +3,8 @@ package audit
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	"github.com/helm/repo-audit/report"
 )
 
 // This file contains the configuration handling for the auditing tool. Config
@@ -21,6 +23,8 @@ type Config struct {
 
 	// A URL to the repository
 	Location string `json:"location"`
+
+	Reporters []report.Config `json:"reporters,omitempty"`
 }
 
 // LoadConfigFromFile loads configuration about repositories from a file on

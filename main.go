@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattfarina/helm-repo-audit/audit"
+	"github.com/helm/repo-audit/audit"
 	"github.com/mitchellh/go-homedir"
 
 	// using urfave instead of github.com/spf13/cobra because this one has

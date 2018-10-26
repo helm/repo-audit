@@ -1,0 +1,26 @@
+[
+    {
+        "name": "helm-stable",
+        "location": "https://kubernetes-charts.storage.googleapis.com/",
+        "reporters": [
+            {
+                "type": "stderr"
+            },
+            {
+                "type": "email",
+                "config": {
+                    "to": "foo@example.com,bar@example.com",
+                    "from": "qux@example.com",
+                    "username": "qux@example.com",
+                    "password": "ABC123",
+                    "host": "smtp.example.com",
+                    "port": "587"
+                }
+            }
+        ]
+    },
+    {
+        "name": "helm-incubator",
+        "location": "https://kubernetes-charts-incubator.storage.googleapis.com/"
+    }
+]
