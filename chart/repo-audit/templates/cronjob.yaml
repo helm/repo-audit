@@ -1,0 +1,46 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "repo-audit.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "repo-audit.name" . }}
+    helm.sh/chart: {{ include "repo-audit.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "repo-audit.name" . }}
+        helm.sh/chart: {{ include "repo-audit.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        cronjob-name: {{ template "repo-audit.fullname" . }}
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              volumeMounts:
+                - mountPath: /config.json
+                  name: repo-audit-config-json
+                  readOnly: true
+                - mountPath: /store
+                  name: repo-audit-data
+          volumes:
+            - name: repo-audit-config-json
+              secret:
+                secretName: {{ template "repo-audit.secretname" . }}
+                items:
+                  - key: config.json
+                    path: config.json
+            - name: repo-audit-data
+              persistentVolumeClaim:
+                claimName: {{ template "repo-audit.fullname" . }}-pvc
+          restartPolicy: Never

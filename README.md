@@ -6,8 +6,8 @@ A tool like this could be run at regular intervals (k8s CronJob?) to audit a rep
 
 ## TODO
 
-* [ ] Check if digests for a given version have changed in a index file
-* [ ] Email a report
+* [x] Check if digests for a given version have changed in a index file
+* [x] Email a report
 * [ ] (Opt-in) check if newly released charts, since the last run, match their digest
 * [ ] (opt-in) check if all charts match their digest (this will download all charts on all runs)
 * [ ] (Opt-in) check and report which charts have provenance files

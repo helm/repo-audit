@@ -42,13 +42,13 @@ func main() {
 		cli.StringFlag{
 			Name:   "config, c",
 			Usage:  "Location of the config file (required)",
-			EnvVar: "HELM_REPO_AUDIT_CONFIG",
+			EnvVar: "REPO_AUDIT_CONFIG",
 		},
 		cli.StringFlag{
 			Name:   "store",
 			Usage:  "Location of persistent store",
 			Value:  cacheLoc,
-			EnvVar: "HELM_REPO_AUDIT_STORE",
+			EnvVar: "REPO_AUDIT_STORE",
 		},
 
 		// TODO(mattfarina): Add verbose option

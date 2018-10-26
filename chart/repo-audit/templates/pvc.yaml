@@ -1,0 +1,22 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "repo-audit.fullname" . }}-pvc
+  labels:
+    app.kubernetes.io/name: {{ include "repo-audit.name" . }}
+    helm.sh/chart: {{ include "repo-audit.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.store.size | quote }}
+{{- if .Values.store.storageClass }}
+{{- if (eq "-" .Values.store.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.store.storageClass }}"
+{{- end }}
+{{- end }}

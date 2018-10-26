@@ -1,0 +1,33 @@
+# TODO: When there is a release switch to a pinned version and IfNotPresent pull policy
+image:
+  repository: quay.io/helmpack/repo-audit
+  tag: latest
+  pullPolicy: Always
+
+## cronjob history
+successfulJobsHistoryLimit: 5
+failedJobsHistoryLimit: 5
+
+## set to `now` to get a one time job, or a cronjob schedule like `5 4 * * 3`
+## to get a cronjob. The default is set to run once per week.
+schedule: "5 4 * * 3"
+# schedule: now
+
+# A persistant store of information is requrired. The current implementation
+# uses persistent volumes.
+store:
+  size: 10Mi
+  # storageClass: "-"
+
+
+# The name of an existing secret to use instead of creating one. It must
+# conform to the structure of the included secret. The advantage is that this
+# secret can be managed out of band and without any values ended up in a
+# configMap used by Tiller. If this value is set to a non-empty value the
+# other elements on secret are ignored.
+# existingSecret:
+
+# A configuration object to pass in. Will be stored as a secret
+config:
+- name": "helm-incubator"
+  location: "https://kubernetes-charts-incubator.storage.googleapis.com/"
